@@ -1,6 +1,8 @@
 extern crate dotenvy;
 
-use std::net::SocketAddr;
+use std::{
+    env
+};
 
 use axum::{
     body::{Body, Bytes},
@@ -53,10 +55,11 @@ async fn main() {
         .fallback(handler_404.into_service());
 
     // run it
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    info!("Listening on http://{}", addr);
+    let app_port = env::var("APP_PORT").expect("APP_PORT env not set.");
+    let addr = format!("127.0.0.1:{}", app_port);
+    info!("Starting HTTP server at http://{}", addr);
 
-    axum::Server::bind(&addr)
+    axum::Server::bind(&addr.parse().unwrap())
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
         .await
