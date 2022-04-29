@@ -3,7 +3,7 @@ extern crate dotenvy;
 use std::net::SocketAddr;
 
 use axum::{response::Html, Router, routing::get};
-use axum::http::{HeaderValue, Method};
+use axum::http::{Method};
 use dotenvy::dotenv;
 use log::info;
 use tokio::signal;
