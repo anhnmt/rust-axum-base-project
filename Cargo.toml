@@ -1,0 +1,20 @@
+[package]
+name = "rust-axum-base-project"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4"
+
+axum = { version = "0.5" }
+tokio = { version = "1.0", features = ["full"] }
+tower-http = { version = "0.3", features = ["cors"] }
+
+dotenvy = "0.15"
+
+tracing = "0.1"
+tracing-subscriber = "0.2"
+
+chrono = "0.4" # Used for setting DateTimes
