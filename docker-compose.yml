@@ -1,0 +1,34 @@
+version: '3.8'
+
+#services describe the containers that will start
+services:
+  # backend is the container name for our Go API
+  rust-axum-base-project:
+    container_name: rust-actix-axum-project
+    image: registry.gitlab.com/xdorro/registry/rust-axum-base-project:latest
+    # Exposes the port 8000 from a container and binds it to a random port
+    ports:
+      - "8000:8000"
+    # If the container goes down, it will restart
+    # restart: "always"
+    restart: "no"
+    # Connects the API to a common base-project bridge
+    networks:
+      - base-project
+    # Starts up 1 replicas of the same image
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: "500M"
+    environment:
+      - RUST_LOG=debug
+      - APP_PORT=8000
+      - APP_DEV=true
+      - DB_URL=mongodb://root:123456aA%40@mongodb:27017
+      - DB_NAME=rustdb
+
+networks:
+  base-project:
+    external: true
