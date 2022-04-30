@@ -1,38 +1,24 @@
-use axum::{
-    body::{Body, Bytes},
-    handler::Handler,
-    http::{Method, Request, StatusCode},
-    middleware::{self, Next},
-    response::{Html, IntoResponse, Response},
-    Router,
-    routing::{get, post},
-};
+use axum::{body::{Body, Bytes}, handler::Handler, http::{Method, Request, StatusCode}, Json, middleware::{self, Next}, response::{Html, IntoResponse, Response}, Router, routing::{get, post}};
 use log::info;
 use tower_http::{
     cors::{Any, CorsLayer},
 };
 
 async fn handler_404() -> impl IntoResponse {
-    (StatusCode::NOT_FOUND, "nothing to see here")
+    Json(serde_json::json!({"error": true, "message": "nothing to see here"}))
 }
 
 pub fn init() -> Router {
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(vec![Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS]);
+
     Router::new()
         .route("/", get(handler))
         .route("/", post(|| async move { "Hello from `POST /`" }))
-        .layer(middleware::from_fn(print_request_response))
-        .layer(
-            // see https://docs.rs/tower-http/latest/tower_http/cors/index.html
-            // for more details
-            //
-            // pay attention that for some request types like posting content-type: application/json
-            // it is required to add ".allow_headers(vec![http::header::CONTENT_TYPE])"
-            // or see this issue https://github.com/tokio-rs/axum/issues/849
-            CorsLayer::new()
-                .allow_origin(Any)
-                .allow_methods(vec![Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS]),
-        )
         .fallback(handler_404.into_service())
+        .layer(cors)
+        .layer(middleware::from_fn(print_request_response))
 }
 
 async fn handler() -> Html<&'static str> {
