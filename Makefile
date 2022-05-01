@@ -16,3 +16,13 @@ docker.run:
 docker.dev: docker.build docker.push
 
 docker.test: docker.build docker.run
+
+cargo.install:
+	cargo install cargo-watch --locked
+	cargo install cargo-udeps --locked
+
+cargo.watch:
+	cargo watch -x check
+
+cargo.udeps:
+	cargo +nightly udeps
