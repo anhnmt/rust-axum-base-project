@@ -44,9 +44,9 @@ async fn main() {
 
     // run it
     let app_port = env::var("APP_PORT").expect("APP_PORT env not set.");
-    let addr = format!("127.0.0.1:{}", app_port);
-    info!("Starting HTTP server at http://{}", addr);
+    info!("Starting HTTP server at http://localhost:{}", app_port);
 
+    let addr = format!("0.0.0.0:{}", app_port);
     Server::bind(&addr.parse().unwrap())
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
