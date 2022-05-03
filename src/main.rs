@@ -5,15 +5,16 @@ use std::env;
 use axum::Server;
 use dotenvy::dotenv;
 use log::info;
-use mongodb::{
-    Client,
-    options::{ClientOptions, ResolverConfig},
-};
 use tokio::signal;
 
+use crate::config::{
+    database::Database,
+    logger,
+    router,
+};
+
 // External modules reference
-mod logger;
-mod router;
+mod config;
 mod controllers;
 mod models;
 
@@ -22,21 +23,15 @@ async fn main() {
     dotenv().ok();
     logger::init();
 
-    // Load the MongoDB connection string from an environment variable:
-    let client_uri =
-        env::var("DB_URL").expect("You must set the DB_URL environment var!");
-
-    // A Client is needed to connect to MongoDB:
-    // An extra line of code to work around a DNS issue on Windows:
-    let options =
-        ClientOptions::parse_with_resolver_config(&client_uri, ResolverConfig::cloudflare())
-            .await.unwrap();
-    let client = Client::with_options(options).unwrap();
+    let db = match Database::new().await {
+        Ok(value) => value,
+        Err(_) => panic!("Failed to setup database connection"),
+    };
 
     // Print the databases in our MongoDB cluster:
     tokio::spawn(async move {
         info!("Databases:");
-        for name in client.list_database_names(None, None).await.unwrap() {
+        for name in db.client.list_database_names(None, None).await.unwrap() {
             info!("- {}", name);
         }
     });
