@@ -32,7 +32,10 @@ pub fn init() -> Router {
         .fallback(handler_404.into_service())
         .route("/", get(handler))
         .route("/", post(|| async move { "Hello from `POST /`" }))
-        .route("/users", get(user::find_all_users))
+        .route("/users",
+               get(user::find_all_users)
+                   .post(user::create_user),
+        )
         .route("/users/:id", get(user::find_user_by_id))
         .layer(cors)
         .layer(middleware::from_fn(print_request_response))
