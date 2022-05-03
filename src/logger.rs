@@ -1,16 +1,15 @@
 use tracing_subscriber::{
     {layer::SubscriberExt, util::SubscriberInitExt}, EnvFilter,
-    fmt,
-    fmt::time,
+    fmt::{self, time::LocalTime},
 };
 
 /// Initialize the logger
 pub fn init() {
-    let time_format = String::from("%Y-%m-%dT%H:%M:%S%.3f%:z");
-    let time = time::ChronoLocal::with_format(time_format);
+    let timer = LocalTime::rfc_3339();
 
     let layer = fmt::layer()
-        .with_timer(time);
+        // .json()
+        .with_timer(timer);
 
     tracing_subscriber::registry()
         .with(EnvFilter::from_default_env())

@@ -14,6 +14,7 @@ use tokio::signal;
 // External modules reference
 mod logger;
 mod router;
+mod controllers;
 
 #[tokio::main]
 async fn main() {

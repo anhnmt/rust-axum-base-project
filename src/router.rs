@@ -1,11 +1,26 @@
-use axum::{body::{Body, Bytes}, handler::Handler, http::{Method, Request, StatusCode}, Json, middleware::{self, Next}, response::{Html, IntoResponse, Response}, Router, routing::{get, post}};
+use axum::{
+    body::{Body, Bytes},
+    handler::Handler,
+    http::{Method, Request, StatusCode},
+    Json,
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    Router,
+    routing::{get, post},
+};
 use log::info;
 use tower_http::{
     cors::{Any, CorsLayer},
 };
 
+use crate::controllers::user;
+
 async fn handler_404() -> impl IntoResponse {
-    Json(serde_json::json!({"error": true, "message": "nothing to see here"}))
+    (StatusCode::CREATED, Json(serde_json::json!({"error": true, "message": "nothing to see here"})))
+}
+
+async fn handler() -> impl IntoResponse {
+    Json(serde_json::json!({"error": false, "message": "hello, world!"}))
 }
 
 pub fn init() -> Router {
@@ -14,15 +29,13 @@ pub fn init() -> Router {
         .allow_methods(vec![Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS]);
 
     Router::new()
+        .fallback(handler_404.into_service())
         .route("/", get(handler))
         .route("/", post(|| async move { "Hello from `POST /`" }))
-        .fallback(handler_404.into_service())
+        .route("/users", get(user::find_all_users))
+        .route("/users/:id", get(user::find_user_by_id))
         .layer(cors)
         .layer(middleware::from_fn(print_request_response))
-}
-
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
 }
 
 async fn print_request_response(req: Request<Body>, next: Next<Body>) -> Result<impl IntoResponse, (StatusCode, String)> {
