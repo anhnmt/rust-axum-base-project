@@ -23,7 +23,9 @@ pub async fn create_user(
     // insert your application logic here
     let user = User {
         id: 1337,
-        username: payload.username,
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
     };
 
     (StatusCode::OK, Json(user))

@@ -9,18 +9,20 @@ use axum::{
     routing::{get, post},
 };
 use log::info;
+use serde_json::json;
 use tower_http::{
     cors::{Any, CorsLayer},
+    compression::CompressionLayer
 };
 
 use crate::controllers::user;
 
 async fn handler_404() -> impl IntoResponse {
-    (StatusCode::CREATED, Json(serde_json::json!({"error": true, "message": "nothing to see here"})))
+    (StatusCode::CREATED, Json(json!({"error": true, "message": "nothing to see here"})))
 }
 
 async fn handler() -> impl IntoResponse {
-    Json(serde_json::json!({"error": false, "message": "hello, world!"}))
+    Json(json!({"error": false, "message": "hello, world!"}))
 }
 
 pub fn init() -> Router {
@@ -39,6 +41,8 @@ pub fn init() -> Router {
         .route("/users/:id", get(user::find_user_by_id))
         .layer(cors)
         .layer(middleware::from_fn(print_request_response))
+        // Compress response bodies
+        .layer(CompressionLayer::new())
 }
 
 async fn print_request_response(req: Request<Body>, next: Next<Body>) -> Result<impl IntoResponse, (StatusCode, String)> {
