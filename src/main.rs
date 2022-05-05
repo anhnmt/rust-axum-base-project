@@ -7,23 +7,43 @@ use dotenvy::dotenv;
 use log::info;
 use tokio::signal;
 
+use crate::config::{
+    database::Database,
+    logger,
+    router,
+};
+
 // External modules reference
-mod logger;
-mod router;
+mod config;
+mod controllers;
+mod models;
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
     logger::init();
 
+    let db = match Database::new().await {
+        Ok(value) => value,
+        Err(_) => panic!("Failed to setup database connection"),
+    };
+
+    // Print the databases in our MongoDB cluster:
+    tokio::spawn(async move {
+        info!("Databases:");
+        for name in db.client.list_database_names(None, None).await.unwrap() {
+            info!("- {}", name);
+        }
+    });
+
     // build our application with a route
     let app = router::init();
 
     // run it
     let app_port = env::var("APP_PORT").expect("APP_PORT env not set.");
-    let addr = format!("127.0.0.1:{}", app_port);
-    info!("Starting HTTP server at http://{}", addr);
+    info!("Starting HTTP server at http://localhost:{}", app_port);
 
+    let addr = format!("0.0.0.0:{}", app_port);
     Server::bind(&addr.parse().unwrap())
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
